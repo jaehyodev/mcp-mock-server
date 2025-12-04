@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.python-version/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+*.jsonl
+
+# Environment variables
+.env.local
+.env
+*.key
+*.pem
+fastagent.secrets.yaml
+
+# IDE and OS Files
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# Operating System
+.DS_Store
+*~
+#*
