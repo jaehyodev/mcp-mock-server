@@ -4,7 +4,7 @@ import oracledb
 # 파일 최상단에 선언된 변수는 해당 파일(모듈) 전체를 범위로 하는 전역 변수로 간주
 db_pool = None
 
-def initialize_db_pool():
+def initialize_oracle_pool():
   """
   FastMCP 서버 시작 시 Oracle DB 연결 풀을 초기화합니다.
   """
@@ -21,7 +21,7 @@ def initialize_db_pool():
       password=ORACLE_PASSWORD,
       dsn=ORACLE_DSN,
       min=2,
-      max=4,
+      max=10,
       increment=1
     )
     print("🎉 database >> DB connection pool 초기화 성공.")
@@ -39,7 +39,7 @@ def get_db_connection():
 
   if db_pool is None:
     print('db_pool이 null 입니다.')
-    db_pool = initialize_db_pool()
+    db_pool = initialize_oracle_pool()
     print('db_pool이 초기화되었습니다. db_pool >> ', db_pool)
 
     if db_pool is None:
@@ -47,6 +47,3 @@ def get_db_connection():
     
   # DB pool에서 연결 획득 (반납 필수)
   return db_pool.acquire()
-  
-# 서버 시작 시 DB pool 초기화
-initialize_db_pool()

@@ -16,6 +16,10 @@ dist/
 *.pem
 fastagent.secrets.yaml
 
+# Docker volumes (persistent data)
+volumes/
+mcp_servers/db/volumes/
+
 # IDE and OS Files
 # IntelliJ IDEA
 .idea/

@@ -55,7 +55,7 @@ mcp:
             args: ["ddg-mcp-server"]
         mcp-mock-server:
             transport: http
-            url: http://127.0.0.1:9091/mcp
+            url: http://127.0.0.1:9092/mcp
             implementation:
                 name: mcp-mock-server
                 version: 1.0.0

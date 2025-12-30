@@ -8,37 +8,64 @@
 -   **Python 버전**: 3.13+
 -   **주요 프레임워크**: FastAPI, FastMCP, FastAgent
 
-## 📂 프로젝트 구조 (수정 필요)
+## 📂 프로젝트 구조
 
 ```
 /
 ├── .env.example              # 환경 변수 예제 파일
-├── main.py                   # FastAPI 애플리케이션 실행 파일
+├── .gitignore                # Git 제외 파일 목록
+├── docker-compose.yml        # Docker Compose 설정 파일
 ├── pyproject.toml            # 프로젝트 의존성 및 설정 파일
 ├── README.md                 # 프로젝트 설명 파일
-├── config/                   # 환경 변수 등 설정 관련 파일
-│   └── settings.py
-├── mcp_server/               # FastMCP 서버 설정 및 핸들러
-│   ├── handlers.py
-│   └── server.py
-├── resources/                # 서버 리소스 관련 파일
-│   └── app_status.py
-├── services/                 # 외부 서비스 연동 관련 로직
-│   ├── gemini.py
-│   └── post_processor.py
-├── tools/                    # FastMCP에 등록될 도구들
-│   ├── search/               # 검색 관련 도구
-│   └── weather/              # 날씨 관련 도구
-└── utils/                    # 유틸리티 함수
-    └── rate_limiter.py
+├── SPEC.md                   # 프로젝트 기술 명세서
+├── mcp_server.py             # FastMCP 서버 실행 파일
+├── agents/                   # FastAgent 관련 파일
+│   ├── agent_server.py       # FastAgent 서버 실행 파일
+│   ├── fastagent.config.yaml # FastAgent 설정 파일
+│   └── fastagent.secrets.yaml # FastAgent API 키 설정 파일
+├── db/                       # 데이터베이스 초기화 관련 파일
+│   ├── config/               # DB 설정 파일
+│   │   └── settings.py       # 환경 변수 로딩
+│   ├── db_server.py          # DB 초기화 서버 (FastAPI)
+│   ├── milvus_init.py        # Milvus 초기화 스크립트
+│   ├── oracle_init.py        # Oracle 초기화 스크립트
+│   └── oracle_schema.py      # Oracle 스키마 정의
+├── mcp_servers/              # FastMCP 서버 관련 파일
+│   ├── config/               # MCP 서버 설정 관련 파일
+│   │   └── settings.py       # 환경 변수 로딩
+│   ├── db/                   # 데이터베이스 연결 파일
+│   │   └── oracle.py         # Oracle 연결 풀 관리
+│   ├── types.py              # 공통 타입 정의
+│   └── tools/                # FastMCP에 등록될 도구들
+│       ├── query/            # 데이터베이스 쿼리 관련 도구
+│       │   ├── milvus_search.py  # Milvus 벡터 검색 도구
+│       │   └── oracle_query.py   # Oracle SQL 쿼리 도구
+│       ├── search/           # 검색 관련 도구
+│       │   ├── duckduckgo_search.py
+│       │   ├── google_search.py
+│       │   └── web_content_fetch.py
+│       └── weather/          # 날씨 관련 도구
+│           └── open_weather_map.py
+├── utils/                    # 유틸리티 함수
+│   └── rate_limiter.py       # API Rate Limiting 유틸
+└── volumes/                  # Docker 볼륨 데이터 (gitignore)
+    ├── etcd/                 # etcd 데이터
+    ├── milvus/               # Milvus 데이터
+    └── minio/                # MinIO 데이터
 ```
 
--   **`config`**: 애플리케이션의 설정을 관리합니다. (예: CORS 설정, 환경 변수 로딩)
--   **`mcp_server`**: `FastMCP` 서버의 인스턴스를 생성하고 도구를 등록하는 핵심 로직이 포함됩니다.
--   **`resources`**: 서버의 상태 정보와 같은 내부 리소스를 정의합니다.
--   **`services`**: Gemini API 연동과 같이 비즈니스 로직을 처리하는 서비스가 위치합니다.
--   **`tools`**: `FastMCP`가 사용할 수 있는 도구들(예: 웹 검색, 날씨 조회)을 정의합니다.
--   **`utils`**: 속도 제한과 같은 공통 유틸리티 기능이 포함됩니다.
+### 디렉토리 설명
+
+-   **`agents/`**: FastAgent 서버의 인스턴스를 생성하고 LLM 모델 설정을 관리합니다.
+-   **`db/`**: Milvus와 Oracle DB의 초기 데이터 설정 및 스키마 관리를 담당합니다.
+-   **`mcp_servers/config/`**: MCP 서버의 환경 변수 및 설정을 관리합니다.
+-   **`mcp_servers/db/`**: Oracle DB 연결 풀 관리 로직이 포함됩니다.
+-   **`mcp_servers/tools/`**: FastMCP가 제공하는 도구들을 정의합니다.
+    -   **`query/`**: 데이터베이스 쿼리 도구 (Milvus 벡터 검색, Oracle SQL 실행)
+    -   **`search/`**: 웹 검색 도구 (Google, DuckDuckGo, 웹 페이지 파싱)
+    -   **`weather/`**: 날씨 정보 조회 도구
+-   **`utils/`**: Rate Limiting 등 공통 유틸리티 기능이 포함됩니다.
+-   **`volumes/`**: Docker 컨테이너의 영구 데이터 저장소입니다. (Git에서 제외됨)
 
 ## 🚀 개발 환경 설정
 
@@ -117,19 +144,33 @@ OPEN_WEATHER_MAP_API_KEY=YOUR_OPENWEATHERMAP_API_KEY
 
 ## ▶️ 서버 실행
 
-다음 명령어를 사용하여 Agent 서버와 FastAPI 서버를 실행합니다. 서버는 기본적으로 `9090, 9091` 포트에서 실행됩니다.
+다음 명령어를 사용하여 Agent 서버와 FastAPI 서버를 실행합니다. 서버는 기본적으로 `9090, 9092` 포트에서 실행됩니다.
+
+### DB 초기 데이터 설정
+
+```bash
+uvicorn db.db_server:app --host 0.0.0.0 --port 9093
+```
 
 ### Agent 서버 실행
 
 ```bash
 cd agents
-uv run agent.py --transport http --port 9090
+uv run agent_server.py --transport http --port 9090
 ```
 
-### FastAPI 서버 실행
+### MCP 서버 실행
 
 ```bash
-fastmcp run server.py:mcp --transport http --port 9091
+fastmcp run mcp_server.py:mcp --transport http --port 9092
+```
+
+### MCP 서버 Inspector 실행 (선택)
+
+npx @modelcontextprotocol/inspector mcp서버실행명령어
+
+```bash
+npx @modelcontextprotocol/inspector fastmcp run mcp_server.py:mcp --transport http --port 9092
 ```
 
 ## 🛠️ 등록된 도구
@@ -140,3 +181,18 @@ fastmcp run server.py:mcp --transport http --port 9091
 -   **OpenWeatherMap**: 특정 위치의 현재 날씨 정보를 조회합니다. (구현)
 -   **WebContentFetcher**: 주어진 URL의 웹 페이지 콘텐츠를 가져와 파싱합니다. (미구현)
 -   **DuckDuckGo Search**: DuckDuckGo를 사용하여 웹 검색을 수행합니다. (미구현)
+
+## Milvus 관리 페이지 접속
+
+### Milvus Attu
+
+`http://localhost:8000/` 접속
+`milvus address`에 `http://milvus-standalone:19530`을 입력한 후, connect를 클릭합니다.
+
+### Milvus Webui
+
+`http://localhost:9091/webui/` 접속
+
+## 참조
+
+-   **Milvus**: https://milvus.io/docs/configure-docker.md?tab=component
